@@ -839,6 +839,14 @@ void GAME_EXPORT Key_Event( int key, int down )
 
 	if( cls.key_dest == key_menu )
 	{
+		// screenshots stay global while the menu owns the keyboard: GoldSrc binds
+		// F5 to snapshot, and the menu itself is what players shoot
+		if( down && kb && ( !Q_stricmp( kb, "snapshot" ) || !Q_stricmp( kb, "screenshot" )))
+		{
+			Key_AddKeyCommands( key, kb, down );
+			return;
+		}
+
 		// classic Xash3D menus don't have an extension that tells engine
 		// to enable text input
 		if( !gameui.use_extended_api )

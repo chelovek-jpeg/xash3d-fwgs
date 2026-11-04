@@ -561,8 +561,10 @@ qboolean VID_ScreenShot( const char *filename, int shot_type )
 	int width = 0, height = 0;
 
 	rgbdata_t *r_shot = Mem_Calloc( r_temppool, sizeof( rgbdata_t ));
-	r_shot->width = (gpGlobals->width + 3) & ~3;
-	r_shot->height = (gpGlobals->height + 3) & ~3;
+	// RGBA rows are always 4-byte aligned, so the grab takes exactly the screen;
+	// the old round-up to a multiple of 4 was for 24-bit reads and made 1366 a 1368
+	r_shot->width = gpGlobals->width;
+	r_shot->height = gpGlobals->height;
 	r_shot->flags = IMAGE_HAS_COLOR;
 	r_shot->type = PF_RGBA_32;
 	r_shot->size = r_shot->width * r_shot->height * gEngfuncs.Image_GetPFDesc( r_shot->type )->bpp;

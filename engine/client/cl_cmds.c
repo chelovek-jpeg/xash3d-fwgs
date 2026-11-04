@@ -316,8 +316,9 @@ void CL_LevelShot_f( void )
 
 static scrshot_t CL_GetScreenshotTypeFromString( const char *string )
 {
+	// snapshot is just another way to type screenshot: same name, same folder
 	if( !Q_stricmp( string, "snapshot" ))
-		return scrshot_snapshot;
+		return scrshot_normal;
 
 	if( !Q_stricmp( string, "screenshot" ))
 		return scrshot_normal;
@@ -384,10 +385,12 @@ void CL_GenericShot_f( void )
 		{
 			int ret;
 
-			if( type == scrshot_snapshot )
-				ret = Q_snprintf( checkname, sizeof( checkname ), "../%s_%04d.png", clgame.mapname, i );
+			// outside of a map the map name is empty, so drop the "_" separator
+			// instead of producing "_shot0000.png"
+			if( clgame.mapname[0] )
+				ret = Q_snprintf( checkname, sizeof( checkname ), "screenshots/%s_shot%04d.png", clgame.mapname, i );
 			else
-				ret = Q_snprintf( checkname, sizeof( checkname ), "scrshots/%s_shot%04d.png", clgame.mapname, i );
+				ret = Q_snprintf( checkname, sizeof( checkname ), "screenshots/shot%04d.png", i );
 
 			if( ret <= 0 )
 			{

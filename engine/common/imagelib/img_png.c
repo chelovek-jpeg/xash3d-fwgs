@@ -652,7 +652,10 @@ qboolean Image_SavePNG( const char *name, rgbdata_t *pix )
 	stream.avail_out = idat_len;
 
 	// compress image
-	if( deflateInit( &stream, Z_BEST_COMPRESSION ) != Z_OK )
+	// screenshots are encoded inside the frame they capture, so a maximum-level
+	// deflate froze the game for up to a second at 1080p; the fastest level is
+	// roughly 7x quicker for only ~20% larger files
+	if( deflateInit( &stream, Z_BEST_SPEED ) != Z_OK )
 	{
 		Con_DPrintf( S_ERROR "%s: deflateInit failed (%s)\n", __func__, name );
 		Mem_Free( filtered_buffer );
