@@ -747,6 +747,17 @@ void GAME_EXPORT Key_Event( int key, int down )
 		return;
 
 	const char *kb = keys[key].binding;
+
+	// no client is loaded while a movie plays, so the skip is handled here:
+	// one press advances to the next video, the last one returns to the menu
+	if( cls.key_dest == key_game && cls.state == ca_cinematic && down && !keys[key].down &&
+		( key == K_MOUSE1 || key == K_SPACE ))
+	{
+		keys[key].down = true;
+		SCR_SkipCinematic();
+		return;
+	}
+
 	keys[key].down = down ? true : false;
 
 #ifdef HACKS_RELATED_HLMODS

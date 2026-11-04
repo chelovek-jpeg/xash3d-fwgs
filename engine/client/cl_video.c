@@ -64,6 +64,25 @@ qboolean SCR_NextMovie( void )
 	return true;
 }
 
+/*
+==================
+SCR_SkipCinematic
+
+Player asked for the next movie: advance the playlist by exactly one entry
+==================
+*/
+void SCR_SkipCinematic( void )
+{
+	if( cls.state != ca_cinematic )
+		return;
+
+	// SCR_NextMovie queues the next movie, or restores the menu after the last
+	// one; the queued command runs now, while the current video is still open,
+	// so the frame after the skip can't advance a second time
+	if( SCR_NextMovie( ))
+		Cbuf_Execute();
+}
+
 static void SCR_CreateStartupVids( void )
 {
 	file_t	*f;
