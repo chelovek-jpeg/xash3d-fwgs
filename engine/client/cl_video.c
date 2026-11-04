@@ -211,7 +211,9 @@ qboolean SCR_PlayCinematic( const char *arg )
 	video_ratio = (double)w / (double)h;
 	screen_ratio = (double)refState.width / (double)refState.height;
 
-	if( video_ratio < screen_ratio )
+	// scale up until the video covers the whole view, keeping its proportions:
+	// the overhanging edges are cropped instead of leaving bars around it
+	if( video_ratio > screen_ratio )
 		scale = (double)refState.height / (double)h;
 	else
 		scale = (double)refState.width / (double)w;
@@ -219,16 +221,8 @@ qboolean SCR_PlayCinematic( const char *arg )
 	w = Q_rint( w * scale );
 	h = Q_rint( h * scale );
 
-	if( video_ratio < screen_ratio )
-	{
-		x = (refState.width - w) / 2.0;
-		y = 0;
-	}
-	else
-	{
-		x = 0;
-		y = (refState.height - h) / 2.0;
-	}
+	x = (refState.width - w) / 2.0;
+	y = (refState.height - h) / 2.0;
 
 	if( AVI_HaveAudioTrack( cin_state ))
 	{
