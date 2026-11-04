@@ -34,6 +34,9 @@ should be enough to determine if device exist in identifier
 typedef uint64_t bloomfilter_t;
 
 static bloomfilter_t id;
+static qboolean id_loaded;	// the id is only needed to connect, see ID_Load
+
+static void ID_Load( void );
 
 #define bf64_mask ((1U<<6)-1)
 
@@ -681,6 +684,8 @@ void ID_GetMD5ForAddress( char *key, netadr_t adr, size_t size )
 	byte buf[32], md5[16];
 	size_t bufsize = 0;
 
+	ID_Load();
+
 	switch( NET_NetadrType( &adr ))
 	{
 	case NA_IP:
@@ -703,13 +708,21 @@ void ID_GetMD5ForAddress( char *key, netadr_t adr, size_t size )
 	Q_strnlwr( MD5_Print( md5 ), key, size );
 }
 
-void ID_Init( void )
+/*
+==================
+ID_Load
+
+The id is generated and verified against the hardware, which on Windows means
+running wmic twice. That costs most of a second, so it is deferred until the
+first connection actually needs the id instead of blocking the boot.
+==================
+*/
+static void ID_Load( void )
 {
-	Cmd_AddRestrictedCommand( "bloomfilter", ID_BloomFilter_f, "print bloomfilter raw value of arguments set");
-	Cmd_AddRestrictedCommand( "verifyhex", ID_VerifyHEX_f, "check if id source seems to be fake" );
-#if XASH_LINUX
-	Cmd_AddRestrictedCommand( "testcpuinfo", ID_TestCPUInfo_f, "try read cpu serial" );
-#endif
+	if( id_loaded )
+		return;
+
+	id_loaded = true;
 
 #if XASH_ANDROID && !XASH_DEDICATED
 	sscanf( Android_LoadID(), "%016"PRIX64, &id );
@@ -792,5 +805,22 @@ void ID_Init( void )
 	FS_WriteFile( ".xash_id", va("%016"PRIX64, id^GAME_XOR_MASK), 16 );
 #if 0
 	Msg("MD5 id: %s\nRAW id:%016"PRIX64"\n", id_md5, id );
+#endif
+}
+
+/*
+==================
+ID_Init
+
+Only registers the debug commands. The id itself is loaded on demand from
+ID_GetMD5ForAddress, see ID_Load.
+==================
+*/
+void ID_Init( void )
+{
+	Cmd_AddRestrictedCommand( "bloomfilter", ID_BloomFilter_f, "print bloomfilter raw value of arguments set" );
+	Cmd_AddRestrictedCommand( "verifyhex", ID_VerifyHEX_f, "check if id source seems to be fake" );
+#if XASH_LINUX
+	Cmd_AddRestrictedCommand( "testcpuinfo", ID_TestCPUInfo_f, "try read cpu serial" );
 #endif
 }
